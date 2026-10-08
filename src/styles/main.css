@@ -1,0 +1,50 @@
+:root {
+  --sounding-bg: #ffd7d7;
+  --sounding-bg-strong: #ff9d9d;
+  --code-font: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono',
+    monospace;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overscroll-behavior: none;
+}
+
+/* 乐谱源码样式 */
+.score-code {
+  font-family: var(--code-font);
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.score-line {
+  display: block;
+  min-height: 1.5em;
+}
+
+.score-code .sounding {
+  background-color: var(--sounding-bg);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--sounding-bg-strong) inset;
+}
+
+/* 尊重系统「减少动态效果」设置 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
