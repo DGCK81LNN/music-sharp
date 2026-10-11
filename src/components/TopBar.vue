@@ -38,7 +38,7 @@ async function onFile(e: Event): Promise<void> {
 
 <template>
   <header class="app-topbar text-white d-flex align-items-center gap-2 px-3 py-2">
-    <strong class="me-auto text-truncate">🎵 多轨音乐编辑器</strong>
+    <strong class="me-auto text-truncate">🎵 music#</strong>
     <BButton size="sm" variant="light" @click="store.addTrack()">＋ 音轨</BButton>
     <BButton size="sm" variant="outline-light" @click="onImportClick">导入</BButton>
     <BButton size="sm" variant="outline-light" @click="onExport">导出</BButton>
