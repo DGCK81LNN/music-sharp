@@ -6,6 +6,23 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" href="https://dgck81lnn.github.io/bootstrap-lnn/dist/bootstrap-lnn.min.css" />
+    <link rel="stylesheet" href="https://dgck81lnn.github.io/bootstrap-lnn/dist/bootstrap-vue-3-lnn.min.css" />
+    <script>
+      // 在样式加载前设置主题，避免首屏闪烁；并跟随系统主题变化
+      ;(() => {
+        const darkMq = matchMedia('(prefers-color-scheme: dark)')
+        const apply = () => {
+          document.documentElement.setAttribute(
+            'data-bs-theme',
+            darkMq.matches ? 'dark' : 'light',
+          )
+        }
+        apply()
+        darkMq.addEventListener('change', apply)
+      })()
+    </script>
     <title>music#</title>
   </head>
   <body>

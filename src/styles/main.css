@@ -5,6 +5,12 @@
     monospace;
 }
 
+/* 深色模式下降低高亮亮度，保证与浅色文字的对比度 */
+[data-bs-theme='dark'] {
+  --sounding-bg: #5c2b2b;
+  --sounding-bg-strong: #a94442;
+}
+
 html,
 body,
 #app {
