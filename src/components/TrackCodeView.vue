@@ -102,7 +102,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <pre ref="containerRef" class="score-code code-view border bg-body-secondary" :class="{ 'score-code--musicjs': track.format === 'musicjs' }" @scroll="onScroll"><span
+  <pre ref="containerRef" class="score-code code-view border bg-body-tertiary" :class="{ 'score-code--musicjs': track.format === 'musicjs' }" @scroll="onScroll"><span
       v-for="(line, li) in lines"
       :key="li"
       class="score-line"
