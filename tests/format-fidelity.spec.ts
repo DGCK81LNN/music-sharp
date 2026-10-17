@@ -7,6 +7,7 @@ import type { NoteEvent } from '../src/formats/types'
 import { runAj } from '../src/formats/aj'
 import { runIp7 } from '../src/formats/ip7'
 import { runTr3, tokenizeTr3 } from '../src/formats/tr3'
+import { runMusicjs, musicjsFormat } from '../src/formats/musicjs'
 
 const refDir = resolve(dirname(fileURLToPath(import.meta.url)), 'reference')
 
@@ -99,6 +100,15 @@ const TR3_SAMPLES = [
   'n;1;2',
   '1$;1%;1*2',
   'S;1;2;E;3',
+  'g0.3;1;2',
+  'h440&1;2',
+  'h220*2&0.5;1',
+  'z1;Z2;3',
+  'a1;1;1;c1;1',
+  'm-5;123',
+  'R;1;2',
+  '1;R;3',
+  '1_2;3.4',
 ]
 
 describe('aj 保真度', () => {
@@ -180,5 +190,67 @@ describe('源码位置追踪', () => {
     for (const ev of rt.__notes) {
       expect(['d', 'r', 'm']).toContain(code.slice(ev.posStart, ev.posEnd))
     }
+  })
+
+  it('Tr3 的音符位置能切回源码', () => {
+    const code = '1;2;3'
+    const rt = createRuntime(120)
+    runTr3(code, rt)
+    for (const ev of rt.__notes) {
+      expect(['1', '2', '3']).toContain(code.slice(ev.posStart, ev.posEnd))
+    }
+  })
+
+  it('musicjs 在其调用处记录位置', () => {
+    const code = 'note(0, 1); noteJust(2, 1); noteHz(440, 1)'
+    const rt = createRuntime(120)
+    runMusicjs(code, rt)
+    expect(rt.__notes.map((e) => code.slice(e.posStart, e.posEnd))).toEqual([
+      'note(0, 1)',
+      'noteJust(2, 1)',
+      'noteHz(440, 1)',
+    ])
+  })
+
+  it('musicjs 嵌套调用记录各自的位置', () => {
+    const code = 'note(1, [noteHz(440, 1), 1][1])'
+    const rt = createRuntime(120)
+    runMusicjs(code, rt)
+    expect(rt.__notes.map((e) => code.slice(e.posStart, e.posEnd))).toEqual([
+      'noteHz(440, 1)',
+      code,
+    ])
+  })
+})
+
+describe('musicjs 解释执行', () => {
+  it('支持变量、循环与函数', () => {
+    const code = `
+      bpm = 240
+      gain = 0.25
+      for (let i = 0; i < 3; i++) note(i, 1)
+      const f = (x) => noteJust(x, 0.5)
+      f(2)
+      rest(1)
+    `
+    const mine = ourRun(120, (rt) => runMusicjs(code, rt))
+    expect(mine).toEqual([
+      { start: 0, end: 0.25, frequency: 440, gain: 0.25 },
+      { start: 0.25, end: 0.5, frequency: 466.1638, gain: 0.25 },
+      { start: 0.5, end: 0.75, frequency: 493.8833, gain: 0.25 },
+      { start: 0.75, end: 0.875, frequency: 880, gain: 0.25 },
+    ])
+  })
+
+  it('支持 time 跳转', () => {
+    const code = 'note(0, 1); time = 10; note(0, 1)'
+    const mine = ourRun(120, (rt) => runMusicjs(code, rt))
+    expect(mine.map((e) => e.start)).toEqual([0, 10])
+  })
+
+  it('语法错误写入 errors 而不是抛出', () => {
+    const res = musicjsFormat.parse('note(', { bpm: 120, params: {} })
+    expect(res.events).toEqual([])
+    expect(res.errors.length).toBe(1)
   })
 })

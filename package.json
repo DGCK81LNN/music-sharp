@@ -14,9 +14,11 @@
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "@vue/devtools-api": "^8.2.1",
+    "acorn": "^8.19.0",
     "bootstrap": "^5.3.8",
     "bootstrap-vue-next": "^1.2.2",
     "pinia": "^4.0.3",
+    "sval": "^0.6.12",
     "vue": "^3.5.43"
   },
   "devDependencies": {

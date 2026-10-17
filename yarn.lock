@@ -648,7 +648,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn@npm:^8.16.0":
+"acorn@npm:^8.14.0, acorn@npm:^8.16.0, acorn@npm:^8.19.0":
   version: 8.19.0
   resolution: "acorn@npm:8.19.0"
   bin:
@@ -1200,9 +1200,11 @@ __metadata:
     "@vitejs/plugin-vue": "npm:^6.0.9"
     "@vue/devtools-api": "npm:^8.2.1"
     "@vue/test-utils": "npm:^2.5.1"
+    acorn: "npm:^8.19.0"
     bootstrap: "npm:^5.3.8"
     bootstrap-vue-next: "npm:^1.2.2"
     pinia: "npm:^4.0.3"
+    sval: "npm:^0.6.12"
     typescript: "npm:^6.0.1"
     unplugin-vue-components: "npm:^32.1.0"
     vite: "npm:^8.3.3"
@@ -1494,6 +1496,15 @@ __metadata:
   version: 4.3.0
   resolution: "std-env@npm:4.3.0"
   checksum: 10c0/1e90dc69f32f853375c6de45dbe7219c8399e2a3ab3a972fdcd1cf3c20fe0e3c13bf58d57d6193b551d37a81c50dfb3f51e07774e9e48a7dc5a22dabcad7acbd
+  languageName: node
+  linkType: hard
+
+"sval@npm:^0.6.12":
+  version: 0.6.12
+  resolution: "sval@npm:0.6.12"
+  dependencies:
+    acorn: "npm:^8.14.0"
+  checksum: 10c0/7d199addcf761b1aa46698c18667d7b112dc80dbd2a9041aecb43048806e55a8adcceaaffacdb19292da17b3c7587e757287cc8b71428db9d8d56e88da5966a9
   languageName: node
   linkType: hard
 

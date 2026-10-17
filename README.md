@@ -23,6 +23,7 @@
 | UI | Bootstrap 5 + bootstrap-vue-next（组件按需自动引入） |
 | 状态 | Pinia |
 | 测试 | Vitest + @vue/test-utils |
+| JS 解释器 | Sval（在执行原生 `musicjs` 代码时追踪 `note()` 等函数的调用位置） |
 | 包管理 | Yarn 4（Corepack） |
 
 ## 环境要求
@@ -92,7 +93,8 @@ src/
     types.ts                  # FormatDef / NoteEvent 等类型
     runtime.ts                # musicjs 收集式运行时（含位置钩子）
     aj.ts  ip7.ts  tr3.ts     # 三种语法的移植解析器（带源码位置）
-    musicjs.ts                # 原生 musicjs 代码格式
+    musicjs.ts                # 原生 musicjs 代码格式：由 Sval 解释器沙箱执行，
+                              # 并在 note()/noteJust()/noteHz() 调用处记录源码位置
     registry.ts               # 语法注册表（新增语法只需在此登记）
   audio/engine.ts             # Web Audio 实时引擎（前瞻调度 / 播放 / 暂停 / 跳转）
   stores/                     # Pinia：session / playback / settings
