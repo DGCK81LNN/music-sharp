@@ -224,18 +224,18 @@ export function runAj(code: string, rt: MusicRuntime): void {
         tupletScale = tupletScale === 1 ? 2 / 3 : 1
         break
       case 'd': {
-        const matched = code.slice(cursor).match(/^\d*(.\d*)?/)
+        const matched = code.slice(cursor).match(/^\d*(\.\d*)?/)
         const numberText = matched ? matched[0] : ''
         const value = Number(numberText) || 1
         const exponent = Math.log2(value)
         cursor += numberText.length
         tupletScale = exponent && Number.isInteger(exponent)
-          ? 0.75
+          ? 1.5
           : 2 ** Math.floor(exponent) / value
         break
       }
       case 'r': {
-        const matched = code.slice(cursor).match(/^(\d*(.\d*)?):(\d*(.\d*)?)/) || ['']
+        const matched = code.slice(cursor).match(/^(\d*(\.\d*)?):(\d*(\.\d*)?)/) || ['']
         cursor += matched[0].length
         const numerator = Number(matched[3]) || 1
         const denominator = Number(matched[1])
