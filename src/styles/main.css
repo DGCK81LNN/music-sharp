@@ -1,8 +1,6 @@
 :root {
   --sounding-bg: #ffd7d7;
   --sounding-bg-strong: #ff9d9d;
-  --code-font: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono',
-    monospace;
 }
 
 /* 深色模式下降低高亮亮度，保证与浅色文字的对比度 */
@@ -24,7 +22,8 @@ body {
 
 /* 乐谱源码样式 */
 .score-code {
-  font-family: var(--code-font);
+  font-family: var(--bs-font-monospace);
+  font-variant-ligatures: none;
   white-space: pre-wrap;
   word-break: break-all;
   margin: 0;
@@ -35,6 +34,11 @@ body {
 .score-line {
   display: block;
   min-height: 1.5em;
+}
+
+/* 原始 musicjs 代码是 JavaScript，仅对它启用上下文连字（编程连字） */
+.score-code.score-code--musicjs {
+  font-variant-ligatures: contextual;
 }
 
 .score-code .sounding {

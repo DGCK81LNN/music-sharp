@@ -182,6 +182,7 @@ function openSettings(): void {
           v-model="track.code"
           rows="5"
           class="score-code"
+          :class="{ 'score-code--musicjs': track.format === 'musicjs' }"
           :placeholder="`在此输入 ${formatDef.name} 乐谱…`"
           @scroll="captureScroll"
         />
