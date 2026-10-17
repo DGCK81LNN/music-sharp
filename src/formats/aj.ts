@@ -8,6 +8,7 @@ interface Pending {
   noise?: boolean
   posStart: number
   posEnd: number
+  posEndOpen: boolean
 }
 
 // 与参考实现一致：下标 1..7 对应 do..ti；其余（0/8/9/未知）为 undefined → NaN → 休止。
@@ -30,6 +31,14 @@ export function runAj(code: string, rt: MusicRuntime): void {
   v = 0.5
   let i = 0
   let c = ''
+  const loops: [number, number][] = []
+  let loopIndex = 1
+  let loopLabels: Record<number, number> = {}
+
+  function lockLastPosition(): void {
+    const last = a[a.length - 1]
+    if (last) last.posEndOpen = false
+  }
 
   function flush(): void {
     for (const p of a) {
@@ -61,7 +70,7 @@ export function runAj(code: string, rt: MusicRuntime): void {
       // 动态 case：仅当 c 是「数字字符串」时匹配（等价于原实现的 `case +c+""`）
       case String(+c): {
         const tone = (TONES[+c] as number) + dd + d
-        a.push({ tone, beats: l * k, posStart: i - 1, posEnd: i })
+        a.push({ tone, beats: l * k, posStart: i - 1, posEnd: i, posEndOpen: true })
         d = 0
         m = 1
         break
@@ -69,7 +78,7 @@ export function runAj(code: string, rt: MusicRuntime): void {
       case 'X':
       case 'x': {
         const tone = c === 'X' ? 0 : -6
-        a.push({ tone, beats: l * k, sustain: 0, noise: true, posStart: i - 1, posEnd: i })
+        a.push({ tone, beats: l * k, sustain: 0, noise: true, posStart: i - 1, posEnd: i, posEndOpen: true })
         d = 0
         m = 1
         break
@@ -78,26 +87,26 @@ export function runAj(code: string, rt: MusicRuntime): void {
         const last = a[a.length - 1]
         m /= 2
         last.beats += l * m * k
-        last.posEnd = i
+        if (last.posEndOpen) last.posEnd = i
         break
       }
       case '-': {
         const last = a[a.length - 1]
         last.beats += l * k
-        last.posEnd = i
+        if (last.posEndOpen) last.posEnd = i
         m = 1
         break
       }
       case ',': {
         const last = a[a.length - 1]
         last.tone -= 12
-        last.posEnd = i
+        if (last.posEndOpen) last.posEnd = i
         break
       }
       case "'": {
         const last = a[a.length - 1]
         last.tone += 12
-        last.posEnd = i
+        if (last.posEndOpen) last.posEnd = i
         break
       }
       case 'b':
@@ -123,6 +132,53 @@ export function runAj(code: string, rt: MusicRuntime): void {
       case '<':
         --dd
         break
+      case ':':
+        loops.push([i, 0])
+        break
+      case ';':
+      case '!': {
+        const count = c === '!' ? code.slice(i).match(/^\d*/)?.[0] || 2 : 2
+        const loop = loops[loops.length - 1]
+        if (loop && ++loop[1] < Number(count)) {
+          lockLastPosition()
+          i = loop[0]
+        } else {
+          loops.pop()
+          i += typeof count === 'string' ? count.length : 0
+        }
+        break
+      }
+      case '$': {
+        const label = code.slice(i).match(/^\d*/)?.[0] ?? ''
+        if (label) loopLabels[Number(label)] = i += label.length
+        else {
+          loopIndex = 1
+          loopLabels = { 0: i }
+        }
+        break
+      }
+      case '%': {
+        const count = code.slice(i).match(/^\d*/)?.[0] || 2
+        if (loopIndex++ < Number(count)) {
+          lockLastPosition()
+          i = loopLabels[loopIndex] || loopLabels[0] || 0
+        } else {
+          loopIndex = 1
+          loopLabels = { 0: (i += typeof count === 'string' ? count.length : 0) }
+        }
+        break
+      }
+      case '@': {
+        const selected = code.slice(i).match(/^\d+(@\d+)*/)?.[0]
+        if (!selected) break
+        i += selected.length
+        if (!selected.split('@').map(Number).includes(loopIndex)) {
+          lockLastPosition()
+          const nextJump = code.slice(i).search(/[@%]/)
+          i += nextJump < 0 ? Infinity : nextJump
+        }
+        break
+      }
       case 'f':
         v = v === 0.75 ? 1 : 0.75
         rt.gain = v
@@ -156,13 +212,13 @@ export function runAj(code: string, rt: MusicRuntime): void {
       case 's': {
         const last = a[a.length - 1]
         last.sustain = (last.sustain || last.beats) + l * k
-        last.posEnd = i
+        if (last.posEndOpen) last.posEnd = i
         break
       }
       case 'S': {
         const last = a[a.length - 1]
         last.sustain = (last.sustain || last.beats) / 2
-        last.posEnd = i
+        if (last.posEndOpen) last.posEnd = i
         break
       }
     }

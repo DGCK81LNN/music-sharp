@@ -63,6 +63,11 @@ const AJ_SAMPLES = [
   '#1 b2 >1 <2',
   ">>>>>1231'",
   '1 2 3 (4 5) 6 | 7-',
+  ':12;',
+  ':1!3',
+  '$1 1 $2 2 %',
+  '1@2-@1-',
+  '1@1-@2-',
 ]
 
 const IP7_SAMPLES = [
@@ -181,6 +186,16 @@ describe('源码位置追踪', () => {
       const slice = code.slice(ev.posStart, ev.posEnd)
       expect(['1', '2', '3']).toContain(slice)
     }
+  })
+
+  it('aj 跳转后修饰待处理音符时不扩展源码位置', () => {
+    const code = '1@2-@1-'
+    const rt = createRuntime(120)
+    runAj(code, rt)
+
+    expect(rt.__notes).toHaveLength(1)
+    expect(code.slice(rt.__notes[0].posStart, rt.__notes[0].posEnd)).toBe('1')
+    expect(rt.__notes[0].end - rt.__notes[0].start).toBe(1)
   })
 
   it('ip7 的音符位置能切回源码', () => {
