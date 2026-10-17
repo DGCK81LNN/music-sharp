@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useSessionStore } from '../stores/session'
+import { usePlaybackStore } from '../stores/playback'
 import TrackCard from './TrackCard.vue'
 
 const store = useSessionStore()
+const playback = usePlaybackStore()
 </script>
 
 <template>
@@ -17,7 +19,12 @@ const store = useSessionStore()
       :index="i"
       :total="store.tracks.length"
     />
-    <BButton variant="info" class="w-100 mt-1 d-inline-flex align-items-center justify-content-center gap-1" @click="store.addTrack()">
+    <BButton
+      variant="info"
+      class="w-100 mt-1 d-inline-flex align-items-center justify-content-center gap-1"
+      :disabled="playback.playing"
+      @click="store.addTrack()"
+    >
       <IBiPlusLg />
       添加音轨
     </BButton>

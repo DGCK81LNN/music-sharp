@@ -42,7 +42,11 @@ async function onFile(e: Event): Promise<void> {
       <IBiMusicNoteBeamed />
       music#
     </strong>
-    <BButton size="sm" variant="info" class="d-inline-flex align-items-center gap-1" @click="store.addTrack()">
+    <BButton size="sm" variant="info"
+      class="d-inline-flex align-items-center gap-1"
+      :disabled="playback.playing"
+      @click="store.addTrack()"
+    >
       <IBiPlusLg />
       音轨
     </BButton>
