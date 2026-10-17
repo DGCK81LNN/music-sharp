@@ -19,206 +19,239 @@ const TONES: (number | undefined)[] = [undefined, -9, -7, -5, -4, -2, 0, 2]
  * 运行时参数通过 `rt` 提供，生成的音符写入 `rt.__notes`。
  */
 export function runAj(code: string, rt: MusicRuntime): void {
-  let dd = 0
-  let l = 1
-  let m = 1
-  let k = 1
-  const a: Pending[] = []
-  let d = 0
-  const t: number[] = []
-  let v = 0.5
-  rt.gain = 0.5
-  v = 0.5
-  let i = 0
-  let c = ''
-  const loops: [number, number][] = []
-  let loopIndex = 1
-  let loopLabels: Record<number, number> = {}
+  let toneShift = 0
+  let beatLength = 1
+  let dotMultiplier = 1
+  let tupletScale = 1
+  const pendingNotes: Pending[] = []
+  let accidental = 0
+  const timeStack: number[] = []
+  let gain = 0.5
+  rt.gain = gain
+  let cursor = 0
+  const loopStack: [cursor: number, count: number][] = []
+  let jumpIndex = 1
+  let jumpTargets: Record<number, number> = {}
+
+  function updateLastPosition(end: number): void {
+    const lastNote = pendingNotes[pendingNotes.length - 1]
+    if (lastNote?.posEndOpen) lastNote.posEnd = end
+  }
 
   function lockLastPosition(): void {
-    const last = a[a.length - 1]
-    if (last) last.posEndOpen = false
+    const lastNote = pendingNotes[pendingNotes.length - 1]
+    if (lastNote) lastNote.posEndOpen = false
   }
 
   function flush(): void {
-    for (const p of a) {
-      rt.__setPos(p.posStart, p.posEnd)
-      const y = p.tone
-      // `y === y` 为 false 表示 NaN（未知音符 → 按休止处理）
-      if (y === y) {
-        const b = p.beats
-        const s = p.sustain
-        if (p.noise) rt.noteHz(-8000 * 2 ** (y / 12), s || b)
-        else rt.note(y, s || b)
-        if (s) rt.rest(b - s)
+    for (const pendingNote of pendingNotes) {
+      rt.__setPos(pendingNote.posStart, pendingNote.posEnd)
+      const tone = pendingNote.tone
+      // `tone === tone` 为 false 表示 NaN（未知音符 → 按休止处理）
+      if (tone === tone) {
+        const beats = pendingNote.beats
+        const sustain = pendingNote.sustain
+        if (pendingNote.noise) rt.noteHz(-8000 * 2 ** (tone / 12), sustain || beats)
+        else rt.note(tone, sustain || beats)
+        if (sustain) rt.rest(beats - sustain)
       } else {
-        rt.rest(p.beats)
+        rt.rest(pendingNote.beats)
       }
     }
-    a.length = 0
+    pendingNotes.length = 0
   }
 
-  while (i < code.length) {
-    c = code[i++]
-    switch (c) {
+  while (cursor < code.length) {
+    const currentChar = code[cursor++]
+    switch (currentChar) {
       case '(':
-        l /= 2
+        beatLength /= 2
         break
       case ')':
-        l *= 2
+        beatLength *= 2
         break
       // 动态 case：仅当 c 是「数字字符串」时匹配（等价于原实现的 `case +c+""`）
-      case String(+c): {
-        const tone = (TONES[+c] as number) + dd + d
-        a.push({ tone, beats: l * k, posStart: i - 1, posEnd: i, posEndOpen: true })
-        d = 0
-        m = 1
+      case String(+currentChar): {
+        const tone = TONES[+currentChar]! + toneShift + accidental
+        pendingNotes.push({
+          tone,
+          beats: beatLength * tupletScale,
+          posStart: cursor - 1,
+          posEnd: cursor,
+          posEndOpen: true,
+        })
+        accidental = 0
+        dotMultiplier = 1
         break
       }
       case 'X':
       case 'x': {
-        const tone = c === 'X' ? 0 : -6
-        a.push({ tone, beats: l * k, sustain: 0, noise: true, posStart: i - 1, posEnd: i, posEndOpen: true })
-        d = 0
-        m = 1
+        const tone = currentChar === 'X' ? 0 : -6
+        pendingNotes.push({
+          tone,
+          beats: beatLength * tupletScale,
+          sustain: 0,
+          noise: true,
+          posStart: cursor - 1,
+          posEnd: cursor,
+          posEndOpen: true,
+        })
+        accidental = 0
+        dotMultiplier = 1
         break
       }
       case '.': {
-        const last = a[a.length - 1]
-        m /= 2
-        last.beats += l * m * k
-        if (last.posEndOpen) last.posEnd = i
+        dotMultiplier /= 2
+        const lastNote = pendingNotes[pendingNotes.length - 1]
+        lastNote.beats += beatLength * dotMultiplier * tupletScale
+        updateLastPosition(cursor)
         break
       }
       case '-': {
-        const last = a[a.length - 1]
-        last.beats += l * k
-        if (last.posEndOpen) last.posEnd = i
-        m = 1
+        const lastNote = pendingNotes[pendingNotes.length - 1]
+        lastNote.beats += beatLength * tupletScale
+        updateLastPosition(cursor)
+        dotMultiplier = 1
         break
       }
       case ',': {
-        const last = a[a.length - 1]
-        last.tone -= 12
-        if (last.posEndOpen) last.posEnd = i
+        const lastNote = pendingNotes[pendingNotes.length - 1]
+        lastNote.tone -= 12
+        updateLastPosition(cursor)
         break
       }
       case "'": {
-        const last = a[a.length - 1]
-        last.tone += 12
-        if (last.posEndOpen) last.posEnd = i
+        const lastNote = pendingNotes[pendingNotes.length - 1]
+        lastNote.tone += 12
+        updateLastPosition(cursor)
         break
       }
       case 'b':
-        --d
+        accidental--
         break
       case '#':
-        ++d
+        accidental++
         break
       case '[':
         flush()
-        t.push(rt.time)
+        timeStack.push(rt.time)
         break
       case ']':
-        t.pop()
+        timeStack.pop()
         break
       case '/':
         flush()
-        rt.time = t[t.length - 1]
+        rt.time = timeStack[timeStack.length - 1]
         break
       case '>':
-        ++dd
+        toneShift++
         break
       case '<':
-        --dd
+        toneShift--
         break
       case ':':
-        loops.push([i, 0])
+        loopStack.push([cursor, 0])
         break
       case ';':
       case '!': {
-        const count = c === '!' ? code.slice(i).match(/^\d*/)?.[0] || 2 : 2
-        const loop = loops[loops.length - 1]
-        if (loop && ++loop[1] < Number(count)) {
+        const repeatCountText = currentChar === '!' ? code.slice(cursor).match(/^\d*/)?.[0] || '' : ''
+        const repeatCount = repeatCountText ? Number(repeatCountText) : 2
+        const loop = loopStack[loopStack.length - 1]
+
+        if (loop) loop[1]++
+        if (loop && loop[1] < repeatCount) {
           lockLastPosition()
-          i = loop[0]
+          cursor = loop[0]
         } else {
-          loops.pop()
-          i += typeof count === 'string' ? count.length : 0
+          loopStack.pop()
+          cursor += repeatCountText.length
         }
         break
       }
       case '$': {
-        const label = code.slice(i).match(/^\d*/)?.[0] ?? ''
-        if (label) loopLabels[Number(label)] = i += label.length
-        else {
-          loopIndex = 1
-          loopLabels = { 0: i }
+        const labelText = code.slice(cursor).match(/^\d*/)?.[0] ?? ''
+        if (labelText) {
+          cursor += labelText.length
+          jumpTargets[Number(labelText)] = cursor
+        } else {
+          jumpIndex = 1
+          jumpTargets = { 0: cursor }
         }
         break
       }
       case '%': {
-        const count = code.slice(i).match(/^\d*/)?.[0] || 2
-        if (loopIndex++ < Number(count)) {
+        const repeatCountText = code.slice(cursor).match(/^\d*/)?.[0] || ''
+        const repeatCount = repeatCountText ? Number(repeatCountText) : 2
+        jumpIndex++
+
+        if (jumpIndex - 1 < repeatCount) {
           lockLastPosition()
-          i = loopLabels[loopIndex] || loopLabels[0] || 0
+          cursor = jumpTargets[jumpIndex] || jumpTargets[0] || 0
         } else {
-          loopIndex = 1
-          loopLabels = { 0: (i += typeof count === 'string' ? count.length : 0) }
+          jumpIndex = 1
+          cursor += repeatCountText.length
+          jumpTargets = { 0: cursor }
         }
         break
       }
       case '@': {
-        const selected = code.slice(i).match(/^\d+(@\d+)*/)?.[0]
-        if (!selected) break
-        i += selected.length
-        if (!selected.split('@').map(Number).includes(loopIndex)) {
+        const selectedIndices = code.slice(cursor).match(/^\d+(@\d+)*/)?.[0]
+        if (!selectedIndices) break
+
+        cursor += selectedIndices.length
+        const selectedIndexList = selectedIndices.split('@').map(Number)
+        if (!selectedIndexList.includes(jumpIndex)) {
           lockLastPosition()
-          const nextJump = code.slice(i).search(/[@%]/)
-          i += nextJump < 0 ? Infinity : nextJump
+          const nextJumpOffset = code.slice(cursor).search(/[@%]/)
+          if (nextJumpOffset < 0) cursor = Infinity
+          else cursor += nextJumpOffset
         }
         break
       }
       case 'f':
-        v = v === 0.75 ? 1 : 0.75
-        rt.gain = v
+        gain = gain === 0.75 ? 1 : 0.75
+        rt.gain = gain
         break
       case 'm':
-        v = 0.5
-        rt.gain = v
+        gain = 0.5
+        rt.gain = gain
         break
       case 'p':
-        v = v === 0.33 ? 0.18 : 0.33
-        rt.gain = v
+        gain = gain === 0.33 ? 0.18 : 0.33
+        rt.gain = gain
         break
       case 't':
-        k = k === 1 ? 2 / 3 : 1
+        tupletScale = tupletScale === 1 ? 2 / 3 : 1
         break
       case 'd': {
-        const matched = code.slice(i).match(/^\d*(.\d*)?/)
-        const numStr = matched ? matched[0] : ''
-        const nv = Number(numStr) || 1
-        const e = Math.log2(nv)
-        i += numStr.length
-        k = e && Number.isInteger(e) ? 0.75 : 2 ** Math.floor(e) / nv
+        const matched = code.slice(cursor).match(/^\d*(.\d*)?/)
+        const numberText = matched ? matched[0] : ''
+        const value = Number(numberText) || 1
+        const exponent = Math.log2(value)
+        cursor += numberText.length
+        tupletScale = exponent && Number.isInteger(exponent)
+          ? 0.75
+          : 2 ** Math.floor(exponent) / value
         break
       }
       case 'r': {
-        const matched = code.slice(i).match(/^(\d*(.\d*)?):(\d*(.\d*)?)/) || ['']
-        i += matched[0].length
-        k = (Number(matched[3]) || 1) / Number(matched[1]) || 1
+        const matched = code.slice(cursor).match(/^(\d*(.\d*)?):(\d*(.\d*)?)/) || ['']
+        cursor += matched[0].length
+        const numerator = Number(matched[3]) || 1
+        const denominator = Number(matched[1])
+        tupletScale = numerator / denominator || 1
         break
       }
       case 's': {
-        const last = a[a.length - 1]
-        last.sustain = (last.sustain || last.beats) + l * k
-        if (last.posEndOpen) last.posEnd = i
+        const lastNote = pendingNotes[pendingNotes.length - 1]
+        lastNote.sustain = (lastNote.sustain || lastNote.beats) + beatLength * tupletScale
+        updateLastPosition(cursor)
         break
       }
       case 'S': {
-        const last = a[a.length - 1]
-        last.sustain = (last.sustain || last.beats) / 2
-        if (last.posEndOpen) last.posEnd = i
+        const lastNote = pendingNotes[pendingNotes.length - 1]
+        lastNote.sustain = (lastNote.sustain || lastNote.beats) / 2
+        updateLastPosition(cursor)
         break
       }
     }
