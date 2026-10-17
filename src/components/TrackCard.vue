@@ -7,6 +7,7 @@ import { useSessionStore } from '../stores/session'
 import { usePlaybackStore } from '../stores/playback'
 import { useSettingsStore } from '../stores/settings'
 import TrackCodeView from './TrackCodeView.vue'
+import { openTrackSettings } from '../composables/useTrackSettingsModal'
 
 const props = defineProps<{ track: Track; index: number; total: number }>()
 const store = useSessionStore()
@@ -82,41 +83,61 @@ watch(
     }
   },
 )
+
+function openSettings(): void {
+  store.selectedTrackId = props.track.id
+  openTrackSettings()
+}
 </script>
 
 <template>
-  <BCard
-    class="mb-2 track-card"
-    :class="{ 'track-selected': store.selectedTrackId === props.track.id }"
-    no-body
-    @click="store.selectedTrackId = props.track.id"
-  >
+  <BCard class="mb-2 track-card" no-body>
     <div class="d-flex align-items-center gap-2 p-2">
       <BButton
         size="sm"
-        variant="light"
+        variant="outline-secondary"
         class="flex-shrink-0"
+        :title="open ? '折叠' : '展开'"
         :aria-expanded="open ? 'true' : 'false'"
         @click="open = !open"
       >
-        {{ open ? '▾' : '▸' }}
+        <IBiCaretDown v-if="open" />
+        <IBiCaretRight v-else />
       </BButton>
-      <BFormInput v-model="track.name" size="sm" class="track-name" />
+      <BFormInput
+        v-model="track.name"
+        :disabled="playback.playing"
+        size="sm"
+        class="track-name"
+        title="名称"
+      />
       <BFormSelect
         :model-value="track.format"
         :options="formatOptions"
+        :disabled="playback.playing"
         size="sm"
         class="track-format"
+        title="格式"
         @update:model-value="(v) => store.setFormat(track.id, String(v))"
       />
       <div class="ms-auto d-flex gap-1 flex-shrink-0">
         <BButton
           size="sm"
-          :variant="track.muted ? 'secondary' : 'outline-secondary'"
-          title="静音"
-          @click.stop="track.muted = !track.muted"
+          variant="outline-secondary"
+          title="音轨属性"
+          @click="openSettings"
         >
-          {{ track.muted ? '🔇' : '🔊' }}
+          <IBiGear />
+        </BButton>
+        <BButton
+          size="sm"
+          variant="outline-secondary"
+          :pressed="track.muted"
+          title="静音"
+          @click="track.muted = !track.muted"
+        >
+          <IBiVolumeMute v-if="track.muted" />
+          <IBiVolumeUp v-else />
         </BButton>
         <BButton
           size="sm"
@@ -125,7 +146,7 @@ watch(
           title="上移"
           @click="store.moveTrack(track.id, -1)"
         >
-          ↑
+          <IBiArrowUp />
         </BButton>
         <BButton
           size="sm"
@@ -134,7 +155,7 @@ watch(
           title="下移"
           @click="store.moveTrack(track.id, 1)"
         >
-          ↓
+          <IBiArrowDown />
         </BButton>
         <BButton
           size="sm"
@@ -142,7 +163,7 @@ watch(
           title="删除"
           @click="store.removeTrack(track.id)"
         >
-          ✕
+          <IBiX />
         </BButton>
       </div>
     </div>
@@ -176,14 +197,6 @@ watch(
 </template>
 
 <style scoped>
-.track-card {
-  border-left: 4px solid #0d6efd;
-  cursor: pointer;
-}
-.track-selected {
-  outline: 2px solid #0d6efd;
-  outline-offset: -2px;
-}
 .track-name {
   max-width: 12rem;
 }

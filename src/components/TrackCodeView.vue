@@ -102,7 +102,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <pre ref="containerRef" class="score-code code-view" @scroll="onScroll"><span
+  <pre ref="containerRef" class="score-code code-view border bg-body-secondary" @scroll="onScroll"><span
       v-for="(line, li) in lines"
       :key="li"
       class="score-line"
@@ -117,8 +117,6 @@ onMounted(async () => {
 .code-view {
   max-height: 6lh;
   overflow: auto;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
   border-radius: 4px;
   padding: .375rem .75rem;
 }

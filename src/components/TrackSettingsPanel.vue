@@ -1,14 +1,23 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { useSessionStore } from '../stores/session'
 import { usePlaybackStore } from '../stores/playback'
 import { formats } from '../formats/registry'
+import { trackSettingsVisible } from '../composables/useTrackSettingsModal'
 
 const store = useSessionStore()
 const playback = usePlaybackStore()
-const open = ref(true)
 
 const track = computed(() => store.selectedTrack)
+const visible = computed({
+  get: () => trackSettingsVisible.value,
+  set: (v: boolean) => {
+    trackSettingsVisible.value = v
+  },
+})
+const title = computed(() =>
+  track.value?.name ? `音轨设置 · ${track.value.name}` : '音轨设置',
+)
 const formatDef = computed(() =>
   track.value
     ? formats.find((f) => f.id === track.value!.format) ?? formats[0]
@@ -16,13 +25,6 @@ const formatDef = computed(() =>
 )
 const formatOptions = computed(() =>
   formats.map((f) => ({ value: f.id, text: f.name })),
-)
-
-watch(
-  () => store.selectedTrackId,
-  () => {
-    open.value = true
-  },
 )
 
 function onFormatChange(v: unknown): void {
@@ -38,13 +40,16 @@ function setParam(key: string, type: 'text' | 'number', v: unknown): void {
 </script>
 
 <template>
-  <div v-if="track && !playback.playing" class="settings-panel">
-    <button type="button" class="settings-handle" @click="open = !open">
-      <span class="text-truncate">⚙ {{ track.name || '音轨设置' }}</span>
-      <span class="ms-2">{{ open ? '▾' : '▴' }}</span>
-    </button>
-    <BCollapse v-model="open">
-      <div class="settings-body">
+  <BModal
+    v-model="visible"
+    :title="title"
+    ok-only
+    ok-title="完成"
+    body-class="p-3"
+    scrollable
+  >
+    <template v-if="track">
+      <fieldset :disabled="playback.playing" class="border-0 p-0 m-0">
         <div class="mb-2">
           <label class="form-label small text-muted mb-0">名称</label>
           <BFormInput v-model="track.name" size="sm" />
@@ -89,52 +94,7 @@ function setParam(key: string, type: 'text' | 'number', v: unknown): void {
             @update:model-value="(v) => setParam(p.key, p.type, v)"
           />
         </div>
-      </div>
-    </BCollapse>
-  </div>
+      </fieldset>
+    </template>
+  </BModal>
 </template>
-
-<style scoped>
-.settings-panel {
-  position: fixed;
-  z-index: 20;
-  background: #fff;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
-  border: 1px solid #dee2e6;
-}
-.settings-handle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  border: 0;
-  background: #f1f3f5;
-  padding: 0.5rem 0.75rem;
-  font-weight: 600;
-  text-align: left;
-}
-.settings-body {
-  padding: 0.75rem;
-  max-height: 50vh;
-  overflow: auto;
-}
-/* 窄屏：贴底浮动 */
-@media (max-width: 991.98px) {
-  .settings-panel {
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 12px 12px 0 0;
-  }
-}
-/* 宽屏：停靠右侧 */
-@media (min-width: 992px) {
-  .settings-panel {
-    right: 1rem;
-    bottom: 1rem;
-    width: 20rem;
-    border-radius: 8px;
-  }
-}
-</style>

@@ -17,8 +17,9 @@ const store = useSessionStore()
       :index="i"
       :total="store.tracks.length"
     />
-    <BButton variant="outline-primary" class="w-100 mt-1" @click="store.addTrack()">
-      ＋ 添加音轨
+    <BButton variant="info" class="w-100 mt-1 d-inline-flex align-items-center justify-content-center gap-1" @click="store.addTrack()">
+      <IBiPlusLg />
+      添加音轨
     </BButton>
   </div>
 </template>

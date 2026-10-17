@@ -36,15 +36,3 @@ body {
   border-radius: 3px;
   box-shadow: 0 0 0 1px var(--sounding-bg-strong) inset;
 }
-
-/* 尊重系统「减少动态效果」设置 */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-}

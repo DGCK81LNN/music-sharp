@@ -22,8 +22,10 @@ function onVolume(v: unknown): void {
 <template>
   <footer class="transport-bar border-top px-3 py-2">
     <div class="d-flex align-items-center gap-2">
-      <BButton variant="primary" class="px-3" @click="store.toggle()">
-        {{ store.playing ? '⏸ 暂停' : '▶ 播放' }}
+      <BButton variant="primary" class="px-3 d-inline-flex align-items-center gap-1" @click="store.toggle()">
+        <IBiPause v-if="store.playing" />
+        <IBiPlay v-else />
+        {{ store.playing ? '暂停' : '播放' }}
       </BButton>
       <BButton
         variant="outline-secondary"
@@ -31,7 +33,7 @@ function onVolume(v: unknown): void {
         title="回到开头"
         @click="store.stop()"
       >
-        ⏮
+        <IBiSkipBackward />
       </BButton>
       <span class="time-label text-nowrap ms-auto">
         {{ formatTime(store.currentTime) }} / {{ formatTime(store.duration) }}

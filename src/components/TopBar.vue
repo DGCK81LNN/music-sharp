@@ -37,12 +37,20 @@ async function onFile(e: Event): Promise<void> {
 </script>
 
 <template>
-  <header class="app-topbar text-white d-flex align-items-center gap-2 px-3 py-2">
-    <strong class="me-auto text-truncate">🎵 music#</strong>
-    <BButton size="sm" variant="light" @click="store.addTrack()">＋ 音轨</BButton>
+  <header class="app-topbar bg-dark text-white border-bottom d-flex align-items-center gap-2 px-3 py-2">
+    <strong class="me-auto text-truncate d-inline-flex align-items-center gap-1">
+      <IBiMusicNoteBeamed />
+      music#
+    </strong>
+    <BButton size="sm" variant="info" class="d-inline-flex align-items-center gap-1" @click="store.addTrack()">
+      <IBiPlusLg />
+      音轨
+    </BButton>
     <BButton size="sm" variant="outline-light" @click="onImportClick">导入</BButton>
     <BButton size="sm" variant="outline-light" @click="onExport">导出</BButton>
-    <BButton size="sm" variant="outline-light" v-b-toggle.global-settings>⚙</BButton>
+    <BButton size="sm" variant="outline-light" v-b-toggle.global-settings aria-label="全局设置">
+      <IBiGear />
+    </BButton>
     <input
       ref="fileInput"
       type="file"
@@ -55,7 +63,6 @@ async function onFile(e: Event): Promise<void> {
 
 <style scoped>
 .app-topbar {
-  background-color: #212529;
   position: sticky;
   top: 0;
   z-index: 10;

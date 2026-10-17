@@ -5,6 +5,26 @@ __metadata:
   version: 10
   cacheKey: 10c0
 
+"@antfu/install-pkg@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@antfu/install-pkg@npm:1.1.0"
+  dependencies:
+    package-manager-detector: "npm:^1.3.0"
+    tinyexec: "npm:^1.0.1"
+  checksum: 10c0/140d5994c76fd3d0e824c88f1ce91b3370e8066a8bc2f5729ae133bf768caa239f7915e29c78f239b7ead253113ace51293e95127fafe2b786b88eb615b3be47
+  languageName: node
+  linkType: hard
+
+"@antfu/install-pkg@npm:^2.0.1":
+  version: 2.1.0
+  resolution: "@antfu/install-pkg@npm:2.1.0"
+  dependencies:
+    package-manager-detector: "npm:^1.8.0"
+    tinyexec: "npm:^1.3.1"
+  checksum: 10c0/b4f448a7ffb6d4b5a2fabbdecc3d619e2dfb01cb4ab030d04cfda3b8d98c62c6bea795ae181716c2d5cd97f10d78bfbee892fa7319a8bb3b469df8648bdf1755
+  languageName: node
+  linkType: hard
+
 "@babel/helper-string-parser@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/helper-string-parser@npm:7.29.7"
@@ -75,6 +95,33 @@ __metadata:
   peerDependencies:
     vue: ">=3.3.0"
   checksum: 10c0/9c1480782a1d51b5f4b7f959fa235cd7f7d02652a54532184a54b6b88ee61bffb6d1abc84e1081b50e7c3e4a58ca3e182d841ae07a2f3baa26776ea31b6ddbf3
+  languageName: node
+  linkType: hard
+
+"@iconify-json/bi@npm:^1.2.7":
+  version: 1.2.7
+  resolution: "@iconify-json/bi@npm:1.2.7"
+  dependencies:
+    "@iconify/types": "npm:*"
+  checksum: 10c0/6bd52acb93ced3146413065dceaba13088ac9afabb6cb7cd9dc3646a8fe6c664167192c62391ec9574cdc563dcc673dea473a82cf3a15bfaf39564161db226c4
+  languageName: node
+  linkType: hard
+
+"@iconify/types@npm:*, @iconify/types@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@iconify/types@npm:2.0.0"
+  checksum: 10c0/65a3be43500c7ccacf360e136d00e1717f050b7b91da644e94370256ac66f582d59212bdb30d00788aab4fc078262e91c95b805d1808d654b72f6d2072a7e4b2
+  languageName: node
+  linkType: hard
+
+"@iconify/utils@npm:^3.1.7":
+  version: 3.1.7
+  resolution: "@iconify/utils@npm:3.1.7"
+  dependencies:
+    "@antfu/install-pkg": "npm:^2.0.1"
+    "@iconify/types": "npm:^2.0.0"
+    import-meta-resolve: "npm:^4.2.0"
+  checksum: 10c0/26c99ceff910d84e66e46c643ad37946b34468b352a315534c023e8e59bd6504c26734d306b877660f92aa59d8ce742bf4fe882b24149ad6e862abe919db6564
   languageName: node
   linkType: hard
 
@@ -952,6 +999,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"import-meta-resolve@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "import-meta-resolve@npm:4.2.0"
+  checksum: 10c0/3ee8aeecb61d19b49d2703987f977e9d1c7d4ba47db615a570eaa02fe414f40dfa63f7b953e842cbe8470d26df6371332bfcf21b2fd92b0112f9fea80dde2c4c
+  languageName: node
+  linkType: hard
+
 "ini@npm:^1.3.4":
   version: 1.3.8
   resolution: "ini@npm:1.3.8"
@@ -1110,7 +1164,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"local-pkg@npm:^1.2.0":
+"local-pkg@npm:^1.2.0, local-pkg@npm:^1.2.1":
   version: 1.2.1
   resolution: "local-pkg@npm:1.2.1"
   dependencies:
@@ -1194,6 +1248,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "music-sharp@workspace:."
   dependencies:
+    "@iconify-json/bi": "npm:^1.2.7"
     "@popperjs/core": "npm:^2.11.8"
     "@types/bootstrap": "npm:^5"
     "@types/node": "npm:^26.6.4"
@@ -1206,6 +1261,7 @@ __metadata:
     pinia: "npm:^4.0.3"
     sval: "npm:^0.6.12"
     typescript: "npm:^6.0.1"
+    unplugin-icons: "npm:^24.0.0"
     unplugin-vue-components: "npm:^32.1.0"
     vite: "npm:^8.3.3"
     vitest: "npm:^5.0.3"
@@ -1261,7 +1317,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"obug@npm:^2.1.1, obug@npm:^2.1.4":
+"obug@npm:^2.1.1, obug@npm:^2.1.4, obug@npm:^2.2.1":
   version: 2.2.1
   resolution: "obug@npm:2.2.1"
   checksum: 10c0/8a7c001847d880fa6ba83c7bbee6a80fd271ee628439cd508c8647d53b217abb1759e2d5e4aaeb09a35d0a274bdb225a0a5a78eded3213d63e656153cf411b63
@@ -1272,6 +1328,13 @@ __metadata:
   version: 2.0.12
   resolution: "ohash@npm:2.0.12"
   checksum: 10c0/29a47fa554bfc80d5fcea6ee347296de97cc900abd7d3f502ac3379ce7631770a66c6e942582e0f1ddc8fb2b1246521383d8d6f634fd4f9a0935e315af728b61
+  languageName: node
+  linkType: hard
+
+"package-manager-detector@npm:^1.3.0, package-manager-detector@npm:^1.8.0":
+  version: 1.9.0
+  resolution: "package-manager-detector@npm:1.9.0"
+  checksum: 10c0/c901b08e9d284e9b517d27be1783fc279f3e814fac9de4c30441129a3a4b1475b16314ff95b98268daf49e20d5076478c50bc7b1b3ff8a591eb39f03f02dbb16
   languageName: node
   linkType: hard
 
@@ -1528,7 +1591,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyexec@npm:^1.3.0":
+"tinyexec@npm:^1.0.1, tinyexec@npm:^1.3.0, tinyexec@npm:^1.3.1":
   version: 1.3.1
   resolution: "tinyexec@npm:1.3.1"
   checksum: 10c0/c590369cb3fa73cc18a3998caec8a00f9712d91309c881be3ac52b160fb2f80c7b1fbf3591858ab6abab47ad55385b0c86ec19982e32441a01f55298dab9ccd2
@@ -1593,6 +1656,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"unplugin-icons@npm:^24.0.0":
+  version: 24.0.0
+  resolution: "unplugin-icons@npm:24.0.0"
+  dependencies:
+    "@antfu/install-pkg": "npm:^1.1.0"
+    "@iconify/utils": "npm:^3.1.7"
+    local-pkg: "npm:^1.2.1"
+    obug: "npm:^2.2.1"
+    unplugin: "npm:^3.3.0"
+  peerDependencies:
+    "@svgr/core": ">=7.0.0"
+    "@svgx/core": ^1.0.1
+    "@vue/compiler-sfc": ^3.0.2
+    "@vue/compiler-vapor": ^3.6.0-rc.5
+    svelte: ^3.0.0 || ^4.0.0 || ^5.0.0
+  peerDependenciesMeta:
+    "@svgr/core":
+      optional: true
+    "@svgx/core":
+      optional: true
+    "@vue/compiler-sfc":
+      optional: true
+    "@vue/compiler-vapor":
+      optional: true
+    svelte:
+      optional: true
+  checksum: 10c0/eac9cba1924ab943544e29913d2de2b84839c73cb5896aa09ecc6cfa4e7fe4337da7ac2075e3b7a9555032c84841ffe4cf8b8e2b3c41c2dd9eee0864baa902d0
+  languageName: node
+  linkType: hard
+
 "unplugin-utils@npm:^0.3.1":
   version: 0.3.2
   resolution: "unplugin-utils@npm:0.3.2"
@@ -1626,7 +1719,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unplugin@npm:^3.0.0":
+"unplugin@npm:^3.0.0, unplugin@npm:^3.3.0":
   version: 3.4.0
   resolution: "unplugin@npm:3.4.0"
   dependencies:
