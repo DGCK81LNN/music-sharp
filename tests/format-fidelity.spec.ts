@@ -6,6 +6,8 @@ import { createRuntime, type MusicRuntime } from '../src/formats/runtime'
 import type { NoteEvent } from '../src/formats/types'
 import { runAj } from '../src/formats/aj'
 import { runIp7 } from '../src/formats/ip7'
+import { runIpxf } from '../src/formats/ipxf'
+import { getFormat } from '../src/formats/registry'
 import { runTr3, tokenizeTr3 } from '../src/formats/tr3'
 import { runMusicjs, musicjsFormat } from '../src/formats/musicjs'
 
@@ -89,6 +91,21 @@ const IP7_SAMPLES = [
   '((drm))',
 ]
 
+const IPXF_SAMPLES = [
+  'drmfsltd',
+  '1234567',
+  '8xX9yY',
+  'd/ r+ m- f# sb s\' b,',
+  'd.3/ r.2+ m.1-',
+  '_(d;r;m)Q',
+  '[drm]Q',
+  '[d r] m',
+  '*d r *',
+  '{$1 p}>soft d@soft',
+  'd>base $base+',
+  '{d r}Q',
+]
+
 const TR3_SAMPLES = [
   '1;2;3',
   '12345',
@@ -144,6 +161,20 @@ describe('ip7 保真度', () => {
       end: r4(e.end - shift),
     }))
     expect(mine).toEqual(expected)
+  })
+})
+
+describe('ipxf 保真度', () => {
+  it.each(IPXF_SAMPLES)('%s', (code) => {
+    const ref = refRun('ipxf.js', 'ipxf', 240, (ipxf) => ipxf(code, 240))
+    const mine = ourRun(240, (rt) => runIpxf(code, rt))
+    expect(mine).toEqual(ref)
+  })
+
+  it('格式已注册并将语法错误作为 ParseError 返回', () => {
+    const result = getFormat('ipxf').parse('d@missing', { bpm: 240, params: {} })
+    expect(result.events).toEqual([])
+    expect(result.errors).toEqual([{ message: 'NameError: missing' }])
   })
 })
 
@@ -204,6 +235,15 @@ describe('源码位置追踪', () => {
     runIp7(code, rt)
     for (const ev of rt.__notes) {
       expect(['d', 'r', 'm']).toContain(code.slice(ev.posStart, ev.posEnd))
+    }
+  })
+
+  it('ipxf 的音符位置能切回源码', () => {
+    const code = 'd r m'
+    const rt = createRuntime(240)
+    runIpxf(code, rt)
+    for (const event of rt.__notes) {
+      expect(['d', 'r', 'm']).toContain(code.slice(event.posStart, event.posEnd))
     }
   })
 

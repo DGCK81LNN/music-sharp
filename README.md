@@ -2,12 +2,12 @@
 
 一个移动端优先的网页应用，用于把多种乐谱语法编写的音轨自由组合成一首多轨乐曲，支持即时播放、进度跳转、发声音符高亮与自动滚动，并可导入/导出多轨会话为 JSON。
 
-底层基于 [musicjs](https://wiki.xdi8.top/index.php?title=LNNBot/指令/musicjs&oldid=45010 "LNNBot/指令/musicjs - 希顶维基") 的音符模型（`note` / `noteJust` / `noteHz` / `rest` + `bpm` / `baseFrequency` / `gain` / `time`），本项目把 `aj`、`ip7`、`Tr3` 三种[乐谱语法](https://wiki.xdi8.top/index.php?title=LNNBot/指令/musicjs*&oldid=45372#用法 "LNNBot/指令/musicjs*#用法 - 希顶维基")移植为带**源码位置追踪**的可读 TypeScript 模块，从而支持在源码里实时高亮正在发声的音符。语法插件化，便于后续增加新的记谱方式。
+底层基于 [musicjs](https://wiki.xdi8.top/index.php?title=LNNBot/指令/musicjs&oldid=45010 "LNNBot/指令/musicjs - 希顶维基") 的音符模型（`note` / `noteJust` / `noteHz` / `rest` + `bpm` / `baseFrequency` / `gain` / `time`），本项目把 `aj`、`ip7`、`ipxf`、`Tr3` 等[乐谱语法](https://wiki.xdi8.top/index.php?title=LNNBot/指令/musicjs*&oldid=45372#用法 "LNNBot/指令/musicjs*#用法 - 希顶维基")移植为带**源码位置追踪**的可读 TypeScript 模块，从而支持在源码里实时高亮正在发声的音符。语法插件化，便于后续增加新的记谱方式。
 
 ## 功能特性
 
 - 🎼 **多轨组合**：自由增删、排序、重命名音轨，各轨独立设置开始时间。
-- 🧩 **多种语法**：内置 `aj`（ASCII 简谱）、`ip7`（紧凑语法）、`Tr3`，另有原生 `musicjs` 代码格式；通过格式注册表可扩展。
+- 🧩 **多种语法**：内置 `aj`、`ip7`、`ipxf`、`Tr3`，另有原生 `musicjs` 代码格式；通过格式注册表可扩展。
 - ⚙️ **每轨参数**：语法、乐谱源代码、开始时间（秒）、初始 BPM，以及各语法独有的参数（如 Tr3 的分隔符）。
 - ▶️ **即时播放**：基于 Web Audio 的前瞻调度器，支持播放 / 暂停 / 跳转，进度以滑块或秒数输入调整，带主音量。
 - 🔴 **实时高亮**：播放时代码框切换为不可编辑的富文本，浅红色标记正在发声的音符，并智能自动滚动（尽量让所有高亮音符同屏；装不下时放开自由滚动）。
@@ -92,7 +92,8 @@ src/
   formats/                    # 乐谱语法（插件）
     types.ts                  # FormatDef / NoteEvent 等类型
     runtime.ts                # musicjs 收集式运行时（含位置钩子）
-    aj.ts  ip7.ts  tr3.ts     # 三种语法的移植解析器（带源码位置）
+    aj.ts ip7.ts ipxf.ts      # 各乐谱语法 解析器（带源码位置）
+    tr3.ts
     musicjs.ts                # 原生 musicjs 代码格式：由 Sval 解释器沙箱执行，
                               # 并在 note()/noteJust()/noteHz() 调用处记录源码位置
     registry.ts               # 语法注册表（新增语法只需在此登记）
