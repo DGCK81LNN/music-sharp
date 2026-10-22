@@ -7,7 +7,7 @@ import { usePrefersReducedMotion } from '../composables/usePrefersReducedMotion'
 import { useSettingsStore } from '../stores/settings'
 import { buildLines } from '../utils/highlight'
 
-const props = defineProps<{ track: Track; scrollRatio?: number }>()
+const props = defineProps<{ show?: boolean, track: Track; scrollRatio?: number }>()
 const emit = defineEmits<{ (e: 'scroll', ratio: number): void }>()
 const playback = usePlaybackStore()
 const settings = useSettingsStore()
@@ -95,27 +95,38 @@ function onScroll() {
   emit('scroll', max > 0 ? cont.scrollTop / max : 0)
 }
 
-onMounted(async () => {
-  await nextTick()
-  applyScrollRatio()
-})
+watch(() => props.show, (show) => {
+  if (show) nextTick().then(applyScrollRatio)
+}, { immediate: true })
 </script>
 
 <template>
-  <pre ref="containerRef" class="score-code code-view border bg-body-tertiary" :class="{ 'score-code--musicjs': track.format === 'musicjs' }" @scroll="onScroll"><span
-      v-for="(line, li) in lines"
-      :key="li"
-      class="score-line"
-    ><span
-        v-for="(span, si) in line.spans"
-        :key="si"
-        :class="{ sounding: span.ids.some((id) => activeIds.has(id)) }"
-      >{{ span.text }}</span></span></pre>
+  <pre
+    v-show="props.show !== false"
+    ref="containerRef"
+    class="score-code code-view border bg-body-tertiary"
+    :class="{ 'score-code--musicjs': track.format === 'musicjs' }"
+    @scroll="onScroll"
+    ><template
+      v-if="show !== false"
+      ><span
+        v-for="(line, li) in lines"
+        :key="li"
+        class="score-line"
+      ><span
+          v-for="(span, si) in line.spans"
+          :key="si"
+          :class="{ sounding: span.ids.some((id) => activeIds.has(id)) }"
+        >{{ span.text }}</span
+      ></span
+    ></template
+  ></pre>
 </template>
 
 <style scoped>
 .code-view {
-  max-height: 6lh;
+  box-sizing: content-box;
+  height: 5lh;
   overflow: auto;
   border-radius: 4px;
   padding: .375rem .75rem;

@@ -171,7 +171,7 @@ function openSettings(): void {
     <BCollapse v-model="open">
       <div class="p-2 border-top">
         <TrackCodeView
-          v-if="playback.playing"
+          :show="playback.playing"
           :track="track"
           :scroll-ratio="codeScrollRatio"
           @scroll="codeScrollRatio = $event"
