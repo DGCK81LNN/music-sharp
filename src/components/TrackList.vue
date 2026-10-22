@@ -20,9 +20,9 @@ const playback = usePlaybackStore()
       :total="store.tracks.length"
     />
     <BButton
+      v-if="!playback.playing"
       variant="info"
       class="w-100 mt-1 d-inline-flex align-items-center justify-content-center gap-1"
-      :disabled="playback.playing"
       @click="store.addTrack()"
     >
       <IBiPlusLg />
