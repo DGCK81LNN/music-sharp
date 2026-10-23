@@ -2,12 +2,12 @@
 
 一个移动端优先的网页应用，用于把多种乐谱语法编写的音轨自由组合成一首多轨乐曲，支持即时播放、进度跳转、发声音符高亮与自动滚动，并可导入/导出多轨会话为 JSON。
 
-底层基于 [musicjs](https://wiki.xdi8.top/index.php?title=LNNBot/指令/musicjs&oldid=45010 "LNNBot/指令/musicjs - 希顶维基") 的音符模型（`note` / `noteJust` / `noteHz` / `rest` + `bpm` / `baseFrequency` / `gain` / `time`），本项目把 `aj`、`ip7`、`ipxf`、`Tr3` 等[乐谱语法](https://wiki.xdi8.top/index.php?title=LNNBot/指令/musicjs*&oldid=45372#用法 "LNNBot/指令/musicjs*#用法 - 希顶维基")移植为带**源码位置追踪**的可读 TypeScript 模块，从而支持在源码里实时高亮正在发声的音符。语法插件化，便于后续增加新的记谱方式。
+底层基于 [musicjs](https://wiki.xdi8.top/index.php?title=LNNBot/指令/musicjs&oldid=45010 "LNNBot/指令/musicjs - 希顶维基") 的音符模型（`note` / `noteJust` / `noteHz` / `rest` + `bpm` / `baseFrequency` / `gain` / `time`），支持 `aj`、`ip7`、`ipxf`、`Tr3`、ABC 和原生 `musicjs` 等乐谱语法。解析器按音轨格式动态加载并拆分为独立 chunk，源码位置追踪继续支持播放高亮。
 
 ## 功能特性
 
 - 🎼 **多轨组合**：自由增删、排序、重命名音轨，各轨独立设置开始时间。
-- 🧩 **多种语法**：内置 `aj`、`ip7`、`ipxf`、`Tr3`，另有原生 `musicjs` 代码格式；通过格式注册表可扩展。
+- 🧩 **多种语法**：内置 `aj`、`ip7`、`ipxf`、`Tr3`、ABC 记谱法和原生 `musicjs`；各解析器按需加载，避免把所有语法及 ABC 解析库打入首屏 bundle。
 - ⚙️ **每轨参数**：语法、乐谱源代码、开始时间（秒）、初始 BPM，以及各语法独有的参数（如 Tr3 的分隔符）。
 - ▶️ **即时播放**：基于 Web Audio 的前瞻调度器，支持播放 / 暂停 / 跳转，进度以滑块或秒数输入调整，带主音量。
 - 🔴 **实时高亮**：播放时代码框切换为不可编辑的富文本，浅红色标记正在发声的音符，并智能自动滚动（尽量让所有高亮音符同屏；装不下时放开自由滚动）。
@@ -24,6 +24,7 @@
 | 状态 | Pinia |
 | 测试 | Vitest + @vue/test-utils |
 | JS 解释器 | Sval（在执行原生 `musicjs` 代码时追踪 `note()` 等函数的调用位置） |
+| ABC 解析 | abcjs（按需加载） |
 | 包管理 | Yarn 4（Corepack） |
 
 ## 环境要求
@@ -74,7 +75,7 @@ yarn preview   # 用本地服务器预览构建产物
 
 ## 测试
 
-单元测试位于 `tests/`，重点是**保真测试**：把 `tests/reference/` 里的原始 `aj` / `ip7` / `Tr3` 函数加载到受控运行时，与移植版逐音符对比 `start` / `end` / `frequency` / `gain`，确保重写与参考实现行为一致（含 NaN、连音、跳转、休止等边界）。
+单元测试位于 `tests/`，包括格式保真测试和 ABC 基础解析测试。保真测试把 `tests/reference/` 中的原始实现加载到受控运行时，与移植版逐音符对比 `start` / `end` / `frequency` / `gain`。
 
 ```bash
 yarn test          # 单次
@@ -92,8 +93,8 @@ src/
   formats/                    # 乐谱语法（插件）
     types.ts                  # FormatDef / NoteEvent 等类型
     runtime.ts                # musicjs 收集式运行时（含位置钩子）
-    aj.ts ip7.ts ipxf.ts      # 各乐谱语法 解析器（带源码位置）
-    tr3.ts
+    aj.ts ip7.ts ipxf.ts      # 乐谱解析器（按需动态加载）
+    tr3.ts abc.ts
     musicjs.ts                # 原生 musicjs 代码格式：由 Sval 解释器沙箱执行，
                               # 并在 note()/noteJust()/noteHz() 调用处记录源码位置
     registry.ts               # 语法注册表（新增语法只需在此登记）
@@ -120,7 +121,7 @@ tests/
     {
       "id": "…",
       "name": "主旋律",
-      "format": "aj",              // 'aj' | 'ip7' | 'tr3' | 'musicjs' | …
+      "format": "aj",              // 'aj' | 'ip7' | 'ipxf' | 'tr3' | 'abc' | 'musicjs' | …
       "code": "1 1 5 5 6 6 5",
       "startTime": 0,              // 相对乐曲起点的开始时间（秒）
       "bpm": 120,                  // 初始 BPM

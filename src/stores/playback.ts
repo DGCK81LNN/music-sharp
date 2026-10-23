@@ -13,12 +13,12 @@ export const usePlaybackStore = defineStore('playback', () => {
   const duration = ref(0)
   let rafId = 0
 
-  function buildScore(): EngineNote[] {
+  async function buildScore(): Promise<EngineNote[]> {
     const all: EngineNote[] = []
     let id = 0
-    for (const track of sessionStore.tracks) {
-      if (track.muted) continue
-      const { events } = parseTrack(track)
+    const activeTracks = sessionStore.tracks.filter((track) => !track.muted)
+    const parsedTracks = await Promise.all(activeTracks.map((track) => parseTrack(track)))
+    for (const { events } of parsedTracks) {
       for (const e of events) {
         if (!(e.frequency && e.end > e.start && e.gain > 0)) continue
         all.push({
@@ -35,8 +35,12 @@ export const usePlaybackStore = defineStore('playback', () => {
   }
 
   /** 重新解析所有音轨并更新引擎乐谱与总时长。 */
-  function refresh(): void {
-    const score = buildScore()
+  let refreshRequest = 0
+
+  async function refresh(): Promise<void> {
+    const request = ++refreshRequest
+    const score = await buildScore()
+    if (request !== refreshRequest) return
     duration.value = score.reduce((m, n) => Math.max(m, n.end), 0)
     engine.setScore(score, duration.value)
     // 乐谱缩短时把播放位置收回到新的总时长内，避免进度条超出上限
@@ -48,7 +52,7 @@ export const usePlaybackStore = defineStore('playback', () => {
 
   // 会话中音轨发生任何变化（增删、排序、改格式、改代码、导入等）时同步总时长，
   // 让进度条的最大值始终与当前乐谱一致。
-  watch(() => sessionStore.tracks, () => refresh(), { deep: true })
+  watch(() => sessionStore.tracks, () => void refresh(), { deep: true })
 
   function tick(): void {
     if (!playing.value) return
@@ -64,7 +68,7 @@ export const usePlaybackStore = defineStore('playback', () => {
   }
 
   async function play(): Promise<void> {
-    refresh()
+    await refresh()
     if (duration.value <= 0) return
     if (currentTime.value >= duration.value) currentTime.value = 0
     await engine.play(currentTime.value)
@@ -100,9 +104,9 @@ export const usePlaybackStore = defineStore('playback', () => {
   }
 
   /** 导入等整体替换乐谱后：停止播放、刷新总时长并回到开头。 */
-  function reset(): void {
+  async function reset(): Promise<void> {
     stop()
-    refresh()
+    await refresh()
   }
 
   function setVolume(v: number): void {

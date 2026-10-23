@@ -43,6 +43,11 @@ export interface ParseOptions {
   baseFrequency?: number
 }
 
+export type FormatParser = (
+  code: string,
+  opts: ParseOptions,
+) => ParseResult | Promise<ParseResult>
+
 /** 一种乐谱语法的定义（插件）。新增语法 = 新增一个 FormatDef。 */
 export interface FormatDef {
   id: FormatId
@@ -50,5 +55,5 @@ export interface FormatDef {
   description: string
   defaultBpm: number
   params: FormatParamDef[]
-  parse(code: string, opts: ParseOptions): ParseResult
+  parse: FormatParser
 }

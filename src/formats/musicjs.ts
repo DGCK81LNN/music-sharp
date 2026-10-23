@@ -1,7 +1,7 @@
 import { parse as parseJs } from 'acorn'
 import Sval from 'sval'
 import { createRuntime, type MusicRuntime } from './runtime'
-import type { FormatDef, ParseResult } from './types'
+import type { ParseOptions, ParseResult } from './types'
 
 /** 需要记录源码位置的 musicjs 函数。 */
 const POSITIONED_CALLS = new Set(['note', 'noteJust', 'noteHz'])
@@ -64,7 +64,7 @@ function instrumentPositions(code: string): string {
  * 在 Sval 解释器中执行原生 musicjs 代码，不使用 eval / new Function。
  * 允许使用 note()/noteJust()/noteHz()/rest() 以及 bpm、baseFrequency、gain、time 等变量。
  */
-export function runMusicjs(code: string, rt: MusicRuntime): void {
+function runMusicjs(code: string, rt: MusicRuntime): void {
   const source = instrumentPositions(code)
   // 通过 with 把运行时作为作用域，使 bpm/time 等访问器读写仍然生效。
   const scope = Object.create(rt) as MusicRuntime & {
@@ -88,20 +88,13 @@ export function runMusicjs(code: string, rt: MusicRuntime): void {
   interpreter.run('with($){\n' + source + '\n}')
 }
 
-export const musicjsFormat: FormatDef = {
-  id: 'musicjs',
-  name: 'musicjs',
-  description: '直接书写 musicjs 代码，可调用 note()、noteJust()、noteHz()、rest() 等。',
-  defaultBpm: 120,
-  params: [],
-  parse(code, opts): ParseResult {
-    const rt = createRuntime(opts.bpm, opts.baseFrequency ?? 440)
-    const errors: { message: string }[] = []
-    try {
-      runMusicjs(code, rt)
-    } catch (err) {
-      errors.push({ message: err instanceof Error ? err.message : String(err) })
-    }
-    return { events: rt.__notes, errors }
-  },
+export function parse(code: string, opts: ParseOptions): ParseResult {
+  const rt = createRuntime(opts.bpm, opts.baseFrequency ?? 440)
+  const errors: { message: string }[] = []
+  try {
+    runMusicjs(code, rt)
+  } catch (err) {
+    errors.push({ message: err instanceof Error ? err.message : String(err) })
+  }
+  return { events: rt.__notes, errors }
 }

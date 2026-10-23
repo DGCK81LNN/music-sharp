@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import type { Track } from '../types/session'
-import { parseTrack } from '../composables/useTrackEvents'
+import { useParsedTrack } from '../composables/useTrackEvents'
 import { usePlaybackStore } from '../stores/playback'
 import { usePrefersReducedMotion } from '../composables/usePrefersReducedMotion'
 import { useSettingsStore } from '../stores/settings'
@@ -13,7 +13,7 @@ const playback = usePlaybackStore()
 const settings = useSettingsStore()
 const reduced = usePrefersReducedMotion()
 
-const parsed = computed(() => parseTrack(props.track))
+const parsed = useParsedTrack(() => props.track)
 const lines = computed(() => buildLines(props.track.code, parsed.value.events))
 
 const activeIds = computed(() => {

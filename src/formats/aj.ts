@@ -1,5 +1,5 @@
 import { createRuntime, type MusicRuntime } from './runtime'
-import type { FormatDef, ParseResult } from './types'
+import type { ParseOptions, ParseResult } from './types'
 
 interface Pending {
   tone: number
@@ -18,7 +18,7 @@ const TONES: (number | undefined)[] = [undefined, -9, -7, -5, -4, -2, 0, 2]
  * aj 语法的解析器（移植自原始 aj 实现 tests/reference/aj.js，并加入源码位置追踪）。
  * 运行时参数通过 `rt` 提供，生成的音符写入 `rt.__notes`。
  */
-export function runAj(code: string, rt: MusicRuntime): void {
+function runAj(code: string, rt: MusicRuntime): void {
   let toneShift = 0
   let beatLength = 1
   let dotMultiplier = 1
@@ -259,15 +259,8 @@ export function runAj(code: string, rt: MusicRuntime): void {
   flush()
 }
 
-export const ajFormat: FormatDef = {
-  id: 'aj',
-  name: 'aj',
-  description: '受简谱启发的语法：数字 1-7 为音符，配合 . - ' + "' ( ) [ / ] 等符号。",
-  defaultBpm: 120,
-  params: [],
-  parse(code, opts): ParseResult {
-    const rt = createRuntime(opts.bpm, opts.baseFrequency ?? 440)
-    runAj(code, rt)
-    return { events: rt.__notes, errors: [] }
-  },
+export function parse(code: string, opts: ParseOptions): ParseResult {
+  const rt = createRuntime(opts.bpm, opts.baseFrequency ?? 440)
+  runAj(code, rt)
+  return { events: rt.__notes, errors: [] }
 }

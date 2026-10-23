@@ -1,8 +1,8 @@
 import { createRuntime, type MusicRuntime } from "./runtime"
-import type { FormatDef, ParseResult } from "./types"
+import type { ParseOptions, ParseResult } from "./types"
 import { parseOnly } from "abcjs/src/api/abc_tunebook"
 
-export function runAbc(abc: string, rt: MusicRuntime) {
+function runAbc(abc: string, rt: MusicRuntime): void {
   const tune = parseOnly(abc, {})[0]
   if (!tune) throw new TypeError("No tune found")
   const { tempo, tracks } = tune.setUpAudio({
@@ -21,22 +21,15 @@ export function runAbc(abc: string, rt: MusicRuntime) {
   }
 }
 
-export const abcFormat: FormatDef = {
-  id: "abc",
-  name: "abc",
-  description: "ABC记谱法，基于五线谱",
-  defaultBpm: 180,
-  params: [],
-  parse(abc, opts): ParseResult {
-    const rt = createRuntime(opts.bpm, opts.baseFrequency ?? 440)
-    try {
-      runAbc(abc, rt)
-      return { events: rt.__notes, errors: [] }
-    } catch (error) {
-      return {
-        events: rt.__notes,
-        errors: [{ message: error instanceof Error ? error.message : String(error) }],
-      }
+export function parse(abc: string, opts: ParseOptions): ParseResult {
+  const rt = createRuntime(opts.bpm, opts.baseFrequency ?? 440)
+  try {
+    runAbc(abc, rt)
+    return { events: rt.__notes, errors: [] }
+  } catch (error) {
+    return {
+      events: rt.__notes,
+      errors: [{ message: error instanceof Error ? error.message : String(error) }],
     }
-  },
+  }
 }

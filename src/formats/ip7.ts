@@ -1,5 +1,5 @@
 import { createRuntime, type MusicRuntime } from './runtime'
-import type { FormatDef, ParseResult } from './types'
+import type { ParseOptions, ParseResult } from './types'
 
 interface StoredNote {
   tone: number
@@ -100,7 +100,7 @@ function preprocess(code: string): { str: string; map: number[] } {
 }
 
 /** ip7 语法的解析器（移植自原始 ip7 实现 tests/reference/ip7.js，并加入源码位置追踪）。 */
-export function runIp7(code: string, rt: MusicRuntime, startBeat = 1): void {
+function runIp7(code: string, rt: MusicRuntime, startBeat = 1): void {
   const round3 = (x: number) => Math.round(1e3 * x) / 1e3
   const { str, map } = preprocess(code)
 
@@ -252,16 +252,9 @@ export function runIp7(code: string, rt: MusicRuntime, startBeat = 1): void {
   }
 }
 
-export const ip7Format: FormatDef = {
-  id: 'ip7',
-  name: 'ip7',
-  description: '移植自网页版谱曲工具的紧凑记谱语法；初始 BPM 作为第二个参数传入。',
-  defaultBpm: 240,
-  params: [],
-  parse(code, opts): ParseResult {
-    const rt = createRuntime(opts.bpm, opts.baseFrequency ?? 440)
-    // 参考实现从第 2 拍开始（开头有 1 拍休止）；这里去掉该前置休止。
-    runIp7(code, rt, 0)
-    return { events: rt.__notes, errors: [] }
-  },
+export function parse(code: string, opts: ParseOptions): ParseResult {
+  const rt = createRuntime(opts.bpm, opts.baseFrequency ?? 440)
+  // 参考实现从第 2 拍开始（开头有 1 拍休止）；这里去掉该前置休止。
+  runIp7(code, rt, 0)
+  return { events: rt.__notes, errors: [] }
 }

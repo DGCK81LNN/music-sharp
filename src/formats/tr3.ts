@@ -1,7 +1,7 @@
 import { createRuntime, type MusicRuntime } from './runtime'
-import type { FormatDef, ParseResult } from './types'
+import type { ParseOptions, ParseResult } from './types'
 
-export interface Tr3Token {
+interface Tr3Token {
   text: string
   start: number
   end: number
@@ -19,7 +19,7 @@ function boom(tag: string): never {
 }
 
 /** 按分隔符与「音符开头」切分，并记录每段在源码中的偏移（等价于参考实现的分词）。 */
-export function tokenizeTr3(code: string, sep: string): Tr3Token[] {
+function tokenizeTr3(code: string, sep: string): Tr3Token[] {
   const result: Tr3Token[] = []
   const segs: [number, number][] = []
   if (sep === '') {
@@ -58,7 +58,7 @@ function evalExpr(rt: MusicRuntime, expr: string): unknown {
 }
 
 /** Tr3 语法的解析器（移植自原始 Tr3 实现 tests/reference/Tr3.js，并加入源码位置追踪）。 */
-export function runTr3(
+function runTr3(
   code: string,
   rt: MusicRuntime,
   separator = ';',
@@ -154,7 +154,6 @@ export function runTr3(
       dict[o_t_s[1]] -= 1
     }
     if (runit) {
-      // 用 any 保留参考实现中「字符串 + 数字」混用的 JS 语义。
       let o_t: number | string = o_t_s[0] === 'n' ? '' : dict[o_t_s[0]] + diff
       oT = 1
       if (o_t_s.length > 1) {
@@ -219,18 +218,11 @@ export function runTr3(
   }
 }
 
-export const tr3Format: FormatDef = {
-  id: 'tr3',
-  name: 'Tr3',
-  description: '相对松散的语法，自定义分隔符。',
-  defaultBpm: 120,
-  params: [{ key: 'separator', label: '分隔符', type: 'text', default: ';' }],
-  parse(code, opts): ParseResult {
-    const rt = createRuntime(opts.bpm, opts.baseFrequency ?? 440)
-    const rawSep = typeof opts.params.separator === 'string' ? opts.params.separator : ';'
-    const sep = rawSep === '' ? ';' : rawSep
-    runTr3(code, rt, sep, opts.bpm)
-    return { events: rt.__notes, errors: [] }
-  },
+export function parse(code: string, opts: ParseOptions): ParseResult {
+  const rt = createRuntime(opts.bpm, opts.baseFrequency ?? 440)
+  const rawSeparator = typeof opts.params.separator === 'string' ? opts.params.separator : ';'
+  const separator = rawSeparator === '' ? ';' : rawSeparator
+  runTr3(code, rt, separator, opts.bpm)
+  return { events: rt.__notes, errors: [] }
 }
 

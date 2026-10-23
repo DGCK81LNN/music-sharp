@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import type { Track } from '../types/session'
 import { formats } from '../formats/registry'
-import { parseTrack } from '../composables/useTrackEvents'
+import { useParsedTrack } from '../composables/useTrackEvents'
 import { useSessionStore } from '../stores/session'
 import { usePlaybackStore } from '../stores/playback'
 import { useSettingsStore } from '../stores/settings'
@@ -49,7 +49,7 @@ const formatDef = computed(
 const formatOptions = computed(() =>
   formats.map((f) => ({ value: f.id, text: f.name })),
 )
-const parsed = computed(() => parseTrack(props.track))
+const parsed = useParsedTrack(() => props.track)
 
 const trackWindow = computed(() => {
   const evs = parsed.value.events

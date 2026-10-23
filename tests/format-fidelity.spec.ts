@@ -3,13 +3,13 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { createRuntime, type MusicRuntime } from '../src/formats/runtime'
-import type { NoteEvent } from '../src/formats/types'
-import { runAj } from '../src/formats/aj'
-import { runIp7 } from '../src/formats/ip7'
-import { runIpxf } from '../src/formats/ipxf'
+import type { ParseOptions, ParseResult } from '../src/formats/types'
+import { parse as parseAj } from '../src/formats/aj'
+import { parse as parseIp7 } from '../src/formats/ip7'
+import { parse as parseIpxf } from '../src/formats/ipxf'
 import { getFormat } from '../src/formats/registry'
-import { runTr3, tokenizeTr3 } from '../src/formats/tr3'
-import { runMusicjs, musicjsFormat } from '../src/formats/musicjs'
+import { parse as parseTr3 } from '../src/formats/tr3'
+import { parse as parseMusicjs } from '../src/formats/musicjs'
 
 const refDir = resolve(dirname(fileURLToPath(import.meta.url)), 'reference')
 
@@ -25,7 +25,7 @@ function loadRef(
 
 type Slim = { start: number; end: number; frequency: number; gain: number }
 
-function slim(events: NoteEvent[]): Slim[] {
+function slim(events: ParseResult['events']): Slim[] {
   const r = (x: number) => Math.round(x * 1e4) / 1e4
   return events.map((e) => ({
     start: r(e.start),
@@ -46,10 +46,13 @@ function refRun(
   return slim(rt.__notes)
 }
 
-function ourRun(bpm: number, run: (rt: MusicRuntime) => void): Slim[] {
-  const rt = createRuntime(bpm)
-  run(rt)
-  return slim(rt.__notes)
+function ourRun(
+  bpm: number,
+  code: string,
+  parser: (code: string, options: ParseOptions) => ParseResult,
+  params: ParseOptions['params'] = {},
+): Slim[] {
+  return slim(parser(code, { bpm, params, baseFrequency: 440 }).events)
 }
 
 const AJ_SAMPLES = [
@@ -136,7 +139,7 @@ const TR3_SAMPLES = [
 describe('aj 保真度', () => {
   it.each(AJ_SAMPLES)('%s', (code) => {
     const ref = refRun('aj.js', 'aj', 120, (aj) => aj(code))
-    const mine = ourRun(120, (rt) => runAj(code, rt))
+    const mine = ourRun(120, code, parseAj)
     expect(mine).toEqual(ref)
   })
 })
@@ -144,15 +147,21 @@ describe('aj 保真度', () => {
 describe('ip7 保真度', () => {
   it.each(IP7_SAMPLES)('%s', (code) => {
     const ref = refRun('ip7.js', 'ip7', 240, (ip7) => ip7(code, 240))
-    const mine = ourRun(240, (rt) => runIp7(code, rt))
-    expect(mine).toEqual(ref)
+    const mine = ourRun(240, code, parseIp7)
+    const beatDuration = 60 / 240
+    const expected = ref.map((event) => ({
+      ...event,
+      start: Math.round((event.start - beatDuration) * 1e4) / 1e4,
+      end: Math.round((event.end - beatDuration) * 1e4) / 1e4,
+    }))
+    expect(mine).toEqual(expected)
   })
 
   it('去掉开头 1 拍休止 (startBeat=0)', () => {
     const code = 'drmfsltd'
     const bpm = 240
     const ref = refRun('ip7.js', 'ip7', bpm, (ip7) => ip7(code, bpm))
-    const mine = ourRun(bpm, (rt) => runIp7(code, rt, 0))
+    const mine = ourRun(bpm, code, parseIp7)
     const shift = 60 / bpm
     const r4 = (x: number) => Math.round(x * 1e4) / 1e4
     const expected = ref.map((e) => ({
@@ -167,53 +176,51 @@ describe('ip7 保真度', () => {
 describe('ipxf 保真度', () => {
   it.each(IPXF_SAMPLES)('%s', (code) => {
     const ref = refRun('ipxf.js', 'ipxf', 240, (ipxf) => ipxf(code, 240))
-    const mine = ourRun(240, (rt) => runIpxf(code, rt))
+    const mine = ourRun(240, code, parseIpxf)
     expect(mine).toEqual(ref)
   })
 
-  it('格式已注册并将语法错误作为 ParseError 返回', () => {
-    const result = getFormat('ipxf').parse('d@missing', { bpm: 240, params: {} })
+  it('格式已注册并将语法错误作为 ParseError 返回', async () => {
+    const result = await getFormat('ipxf').parse('d@missing', { bpm: 240, params: {} })
     expect(result.events).toEqual([])
     expect(result.errors).toEqual([{ message: 'NameError: missing' }])
+  })
+})
+
+describe('abc 基础解析', () => {
+  it('解析 ABC 标头、节拍和音符', async () => {
+    const code = `X:1
+M: 4/4
+L: 1/8
+K: Emin
+D2|EB{c}BA B2 EB|`
+    const result = await getFormat('abc').parse(code, { bpm: 180, params: {} })
+
+    expect(result.errors).toEqual([])
+    expect(result.events.length).toBeGreaterThan(0)
   })
 })
 
 describe('Tr3 保真度', () => {
   it.each(TR3_SAMPLES)('%s', (code) => {
     const ref = refRun('Tr3.js', 'Tr3', 120, (Tr3) => Tr3(code, ';'))
-    const mine = ourRun(120, (rt) => runTr3(code, rt, ';', 120))
+    const mine = ourRun(120, code, parseTr3, { separator: ';' })
     expect(mine).toEqual(ref)
   })
 
   it('自定义分隔符 ,', () => {
     const code = '1,2,3'
     const ref = refRun('Tr3.js', 'Tr3', 120, (Tr3) => Tr3(code, ','))
-    const mine = ourRun(120, (rt) => runTr3(code, rt, ',', 120))
+    const mine = ourRun(120, code, parseTr3, { separator: ',' })
     expect(mine).toEqual(ref)
   })
-})
-
-describe('Tr3 分词器', () => {
-  function refTokens(code: string, sep: string): string[] {
-    return code
-      .split(sep)
-      .flatMap((x) => (/^[\dnzZR]/.test(x) ? x.split(/(?=[\dnzZR])/) : x)) as string[]
-  }
-  it.each(['1;2;3', '12345', '1.;2*;3/', 'b60;1231', '13;r1;57', 'z;Z'])(
-    'tokens: %s',
-    (code) => {
-      const mine = tokenizeTr3(code, ';').map((t) => t.text)
-      expect(mine).toEqual(refTokens(code, ';'))
-    },
-  )
 })
 
 describe('源码位置追踪', () => {
   it('aj 的音符位置能切回源码', () => {
     const code = '1 2 3'
-    const rt = createRuntime(120)
-    runAj(code, rt)
-    for (const ev of rt.__notes) {
+    const events = parseAj(code, { bpm: 120, params: {} }).events
+    for (const ev of events) {
       const slice = code.slice(ev.posStart, ev.posEnd)
       expect(['1', '2', '3']).toContain(slice)
     }
@@ -221,46 +228,41 @@ describe('源码位置追踪', () => {
 
   it('aj 跳转后修饰待处理音符时不扩展源码位置', () => {
     const code = '1@2-@1-'
-    const rt = createRuntime(120)
-    runAj(code, rt)
+    const events = parseAj(code, { bpm: 120, params: {} }).events
 
-    expect(rt.__notes).toHaveLength(1)
-    expect(code.slice(rt.__notes[0].posStart, rt.__notes[0].posEnd)).toBe('1')
-    expect(rt.__notes[0].end - rt.__notes[0].start).toBe(1)
+    expect(events).toHaveLength(1)
+    expect(code.slice(events[0].posStart, events[0].posEnd)).toBe('1')
+    expect(events[0].end - events[0].start).toBe(1)
   })
 
   it('ip7 的音符位置能切回源码', () => {
     const code = 'd r m'
-    const rt = createRuntime(240)
-    runIp7(code, rt)
-    for (const ev of rt.__notes) {
+    const events = parseIp7(code, { bpm: 240, params: {} }).events
+    for (const ev of events) {
       expect(['d', 'r', 'm']).toContain(code.slice(ev.posStart, ev.posEnd))
     }
   })
 
   it('ipxf 的音符位置能切回源码', () => {
     const code = 'd r m'
-    const rt = createRuntime(240)
-    runIpxf(code, rt)
-    for (const event of rt.__notes) {
+    const events = parseIpxf(code, { bpm: 240, params: {} }).events
+    for (const event of events) {
       expect(['d', 'r', 'm']).toContain(code.slice(event.posStart, event.posEnd))
     }
   })
 
   it('Tr3 的音符位置能切回源码', () => {
     const code = '1;2;3'
-    const rt = createRuntime(120)
-    runTr3(code, rt)
-    for (const ev of rt.__notes) {
+    const events = parseTr3(code, { bpm: 120, params: {} }).events
+    for (const ev of events) {
       expect(['1', '2', '3']).toContain(code.slice(ev.posStart, ev.posEnd))
     }
   })
 
   it('musicjs 在其调用处记录位置', () => {
     const code = 'note(0, 1); noteJust(2, 1); noteHz(440, 1)'
-    const rt = createRuntime(120)
-    runMusicjs(code, rt)
-    expect(rt.__notes.map((e) => code.slice(e.posStart, e.posEnd))).toEqual([
+    const events = parseMusicjs(code, { bpm: 120, params: {} }).events
+    expect(events.map((e) => code.slice(e.posStart, e.posEnd))).toEqual([
       'note(0, 1)',
       'noteJust(2, 1)',
       'noteHz(440, 1)',
@@ -269,9 +271,8 @@ describe('源码位置追踪', () => {
 
   it('musicjs 嵌套调用记录各自的位置', () => {
     const code = 'note(1, [noteHz(440, 1), 1][1])'
-    const rt = createRuntime(120)
-    runMusicjs(code, rt)
-    expect(rt.__notes.map((e) => code.slice(e.posStart, e.posEnd))).toEqual([
+    const events = parseMusicjs(code, { bpm: 120, params: {} }).events
+    expect(events.map((e) => code.slice(e.posStart, e.posEnd))).toEqual([
       'noteHz(440, 1)',
       code,
     ])
@@ -288,7 +289,7 @@ describe('musicjs 解释执行', () => {
       f(2)
       rest(1)
     `
-    const mine = ourRun(120, (rt) => runMusicjs(code, rt))
+    const mine = ourRun(120, code, parseMusicjs)
     expect(mine).toEqual([
       { start: 0, end: 0.25, frequency: 440, gain: 0.25 },
       { start: 0.25, end: 0.5, frequency: 466.1638, gain: 0.25 },
@@ -299,12 +300,12 @@ describe('musicjs 解释执行', () => {
 
   it('支持 time 跳转', () => {
     const code = 'note(0, 1); time = 10; note(0, 1)'
-    const mine = ourRun(120, (rt) => runMusicjs(code, rt))
+    const mine = ourRun(120, code, parseMusicjs)
     expect(mine.map((e) => e.start)).toEqual([0, 10])
   })
 
-  it('语法错误写入 errors 而不是抛出', () => {
-    const res = musicjsFormat.parse('note(', { bpm: 120, params: {} })
+  it('语法错误写入 errors 而不是抛出', async () => {
+    const res = await getFormat('musicjs').parse('note(', { bpm: 120, params: {} })
     expect(res.events).toEqual([])
     expect(res.errors.length).toBe(1)
   })

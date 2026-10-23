@@ -1,5 +1,5 @@
 import { createRuntime, type MusicRuntime } from './runtime'
-import type { FormatDef, ParseResult } from './types'
+import type { ParseOptions, ParseResult } from './types'
 
 interface NoteAtom {
   kind: 'note'
@@ -693,26 +693,19 @@ function evaluate(source: string, rt: MusicRuntime): void {
   collect(tree, 0)
 }
 
-export function runIpxf(source: string, rt: MusicRuntime): void {
+function runIpxf(source: string, rt: MusicRuntime): void {
   evaluate(source, rt)
 }
 
-export const ipxfFormat: FormatDef = {
-  id: 'ipxf',
-  name: 'ipxf',
-  description: '支持分组、变奏、函数和后缀参数的扩展简谱语法。',
-  defaultBpm: 240,
-  params: [],
-  parse(source, options): ParseResult {
-    const rt = createRuntime(options.bpm, options.baseFrequency ?? 440)
-    try {
-      runIpxf(source, rt)
-      return { events: rt.__notes, errors: [] }
-    } catch (error) {
-      return {
-        events: rt.__notes,
-        errors: [{ message: error instanceof Error ? error.message : String(error) }],
-      }
+export function parse(source: string, options: ParseOptions): ParseResult {
+  const rt = createRuntime(options.bpm, options.baseFrequency ?? 440)
+  try {
+    runIpxf(source, rt)
+    return { events: rt.__notes, errors: [] }
+  } catch (error) {
+    return {
+      events: rt.__notes,
+      errors: [{ message: error instanceof Error ? error.message : String(error) }],
     }
-  },
+  }
 }
