@@ -43,7 +43,7 @@ async function onFile(e: Event): Promise<void> {
       music#
     </strong>
     <BButton size="sm" variant="info"
-      class="d-inline-flex align-items-center gap-1"
+      class="d-inline-flex omit-on-tiny-screen align-items-center gap-1"
       :disabled="playback.playing"
       @click="store.addTrack()"
     >

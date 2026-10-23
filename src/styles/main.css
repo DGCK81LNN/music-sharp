@@ -47,3 +47,9 @@ body {
   border-radius: 3px;
   box-shadow: 0 0 0 1px var(--sounding-bg-strong) inset;
 }
+
+@media not (min-width: 440px) {
+  .omit-on-tiny-screen {
+    display: none !important;
+  }
+}

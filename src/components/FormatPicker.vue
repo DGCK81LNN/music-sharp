@@ -43,7 +43,7 @@ const selectedFormat = computed(
       </span>
       <span
         class="d-block small text-wrap"
-        :class="format.id === selectedFormat.id ? 'text-white-50' : 'text-body-secondary'"
+        :class="format.id === selectedFormat.id ? 'text-light text-opacity-75' : 'text-body-tertiary'"
       >
         {{ format.description }}
       </span>
@@ -52,8 +52,8 @@ const selectedFormat = computed(
 </template>
 
 <style scoped>
-:deep(.format-picker-menu) {
-  width: min(22rem, calc(100vw - 3rem));
+:global(.format-picker-menu) {
+  width: min(22rem, 100vw);
 }
 
 .format-picker-option {

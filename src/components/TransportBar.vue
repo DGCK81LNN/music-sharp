@@ -55,7 +55,7 @@ function onVolume(v: unknown): void {
       <BFormInput
         type="number"
         size="sm"
-        style="max-width: 6rem"
+        style="max-width: 5rem"
         min="0"
         step="0.1"
         :model-value="currentDisplay"

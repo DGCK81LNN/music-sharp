@@ -90,7 +90,7 @@ function openSettings(): void {
 
 <template>
   <BCard class="mb-2 track-card" no-body>
-    <div class="d-flex align-items-center gap-2 p-2">
+    <div class="d-flex align-items-center gap-1 p-2">
       <BButton
         size="sm"
         variant="outline-secondary"
@@ -113,7 +113,7 @@ function openSettings(): void {
         :model-value="track.format"
         :disabled="playback.playing"
         size="sm"
-        class="track-format"
+        class="track-format omit-on-tiny-screen"
         @update:model-value="(v) => store.setFormat(track.id, String(v))"
       />
       <div class="ms-auto d-flex gap-1 flex-shrink-0">
