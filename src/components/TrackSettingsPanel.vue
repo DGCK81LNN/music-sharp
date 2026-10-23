@@ -4,6 +4,7 @@ import { useSessionStore } from '../stores/session'
 import { usePlaybackStore } from '../stores/playback'
 import { formats } from '../formats/registry'
 import { trackSettingsVisible } from '../composables/useTrackSettingsModal'
+import FormatPicker from './FormatPicker.vue'
 
 const store = useSessionStore()
 const playback = usePlaybackStore()
@@ -23,9 +24,6 @@ const formatDef = computed(() =>
     ? formats.find((f) => f.id === track.value!.format) ?? formats[0]
     : formats[0],
 )
-const formatOptions = computed(() =>
-  formats.map((f) => ({ value: f.id, text: f.name })),
-)
 
 function onFormatChange(v: unknown): void {
   const t = track.value
@@ -41,6 +39,7 @@ function setParam(key: string, type: 'text' | 'number', v: unknown): void {
 
 <template>
   <BModal
+    id="track-settings-modal"
     v-model="visible"
     :title="title"
     ok-only
@@ -56,9 +55,10 @@ function setParam(key: string, type: 'text' | 'number', v: unknown): void {
         </div>
         <div class="mb-2">
           <label class="form-label small text-muted mb-0">语法</label>
-          <BFormSelect
+          <FormatPicker
             :model-value="track.format"
-            :options="formatOptions"
+            :disabled="playback.playing"
+            teleport-to="#track-settings-modal"
             size="sm"
             @update:model-value="onFormatChange"
           />

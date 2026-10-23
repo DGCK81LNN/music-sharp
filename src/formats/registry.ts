@@ -55,7 +55,7 @@ export const formats: FormatDef[] = [
   lazyFormat(
     {
       id: 'abc',
-      name: 'ABC 记谱法',
+      name: 'abc',
       description: '使用 abcjs 解析标准 ABC 记谱法，基于五线谱描述旋律，支持自动和弦。',
       defaultBpm: 180,
       params: [],

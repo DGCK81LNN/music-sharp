@@ -7,6 +7,7 @@ import { useSessionStore } from '../stores/session'
 import { usePlaybackStore } from '../stores/playback'
 import { useSettingsStore } from '../stores/settings'
 import TrackCodeView from './TrackCodeView.vue'
+import FormatPicker from './FormatPicker.vue'
 import { openTrackSettings } from '../composables/useTrackSettingsModal'
 
 const props = defineProps<{ track: Track; index: number; total: number }>()
@@ -45,9 +46,6 @@ async function restoreTextareaScroll() {
 
 const formatDef = computed(
   () => formats.find((f) => f.id === props.track.format) ?? formats[0],
-)
-const formatOptions = computed(() =>
-  formats.map((f) => ({ value: f.id, text: f.name })),
 )
 const parsed = useParsedTrack(() => props.track)
 
@@ -111,13 +109,11 @@ function openSettings(): void {
         class="track-name"
         title="名称"
       />
-      <BFormSelect
+      <FormatPicker
         :model-value="track.format"
-        :options="formatOptions"
         :disabled="playback.playing"
         size="sm"
         class="track-format"
-        title="格式"
         @update:model-value="(v) => store.setFormat(track.id, String(v))"
       />
       <div class="ms-auto d-flex gap-1 flex-shrink-0">
