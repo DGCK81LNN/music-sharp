@@ -53,6 +53,7 @@ export interface FormatDef {
   id: FormatId
   name: string
   description: string
+  example: string
   defaultBpm: number
   params: FormatParamDef[]
   parse: FormatParser

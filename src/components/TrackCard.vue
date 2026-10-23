@@ -179,7 +179,7 @@ function openSettings(): void {
           rows="5"
           class="score-code"
           :class="{ 'score-code--musicjs': track.format === 'musicjs' }"
-          :placeholder="`在此输入 ${formatDef.name} 乐谱…`"
+          :placeholder="formatDef.example"
           @scroll="captureScroll"
         />
         <div class="small mt-2 text-muted">

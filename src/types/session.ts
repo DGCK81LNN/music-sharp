@@ -45,16 +45,10 @@ export function createTrack(format: FormatId = 'aj'): Track {
 
 export function createDefaultSession(): Session {
   const lead = createTrack('aj')
-  lead.name = '主旋律'
-  lead.code = "1 1 5 5 6 6 5 | 4 4 3 3 2 2 1"
+  lead.name = '旋律'
+  lead.code = getFormat('aj').example
 
-  const bass = createTrack('aj')
-  bass.name = '低音'
-  bass.code = "1, - - - | 5, - - -"
-  bass.startTime = 0
-  bass.bpm = 120
-
-  return { version: 1, name: '未命名乐曲', tracks: [lead, bass] }
+  return { version: 1, name: '未命名乐曲', tracks: [lead] }
 }
 
 /** 把任意来源的对象规整为合法的 Session（用于导入）。 */
