@@ -695,6 +695,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"abcjs@npm:^6.7.2":
+  version: 6.7.2
+  resolution: "abcjs@npm:6.7.2"
+  checksum: 10c0/32dff035d19e1006d5ace20a4ea62de435245427e487217a7f3f6972c840c843eb0f75f70a02b49d991e78593753ce07073924030c8bd85bc7a39000284b2c7a
+  languageName: node
+  linkType: hard
+
 "acorn@npm:^8.14.0, acorn@npm:^8.16.0, acorn@npm:^8.19.0":
   version: 8.19.0
   resolution: "acorn@npm:8.19.0"
@@ -1255,6 +1262,7 @@ __metadata:
     "@vitejs/plugin-vue": "npm:^6.0.9"
     "@vue/devtools-api": "npm:^8.2.1"
     "@vue/test-utils": "npm:^2.5.1"
+    abcjs: "npm:^6.7.2"
     acorn: "npm:^8.19.0"
     bootstrap: "npm:^5.3.8"
     bootstrap-vue-next: "npm:^1.2.2"

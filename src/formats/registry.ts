@@ -3,10 +3,11 @@ import { ajFormat } from './aj'
 import { ip7Format } from './ip7'
 import { ipxfFormat } from './ipxf'
 import { tr3Format } from './tr3'
+import { abcFormat } from './abc'
 import { musicjsFormat } from './musicjs'
 
 /** 所有已注册的乐谱语法。新增语法只需在此登记。 */
-export const formats: FormatDef[] = [ajFormat, ip7Format, ipxfFormat, tr3Format, musicjsFormat]
+export const formats: FormatDef[] = [ajFormat, ip7Format, ipxfFormat, tr3Format, abcFormat, musicjsFormat]
 
 const byId = new Map(formats.map((f) => [f.id, f] as const))
 
